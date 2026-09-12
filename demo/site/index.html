@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>moonbit-jsonpatch playground</title>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --border: #30363d;
+    --text: #e6edf3; --dim: #8b949e; --green: #3fb950; --red: #f85149;
+    --accent: #58a6ff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: "SF Mono", Consolas, monospace; padding: 24px;
+  }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  h1 a { color: var(--accent); text-decoration: none; }
+  .sub { color: var(--dim); font-size: 13px; margin-bottom: 16px; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+  .tabs button {
+    background: var(--panel); color: var(--text); border: 1px solid var(--border);
+    border-radius: 6px; padding: 6px 14px; cursor: pointer; font: inherit; font-size: 13px;
+  }
+  .tabs button.active { border-color: var(--accent); color: var(--accent); }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .col label { display: block; color: var(--dim); font-size: 12px; margin-bottom: 6px; }
+  textarea {
+    width: 100%; height: 260px; background: var(--panel); color: var(--text);
+    border: 1px solid var(--border); border-radius: 6px; padding: 10px;
+    font: inherit; font-size: 13px; resize: vertical; white-space: pre; overflow-wrap: normal;
+    overflow-x: auto;
+  }
+  textarea:focus { outline: none; border-color: var(--accent); }
+  .result { margin-top: 12px; }
+  .result h2 { font-size: 13px; margin: 0 0 6px; }
+  .result pre {
+    margin: 0; background: var(--panel); border: 1px solid var(--border);
+    border-radius: 6px; padding: 12px; font-size: 13px; line-height: 1.6;
+    min-height: 48px; white-space: pre-wrap; word-break: break-all;
+  }
+  .ok h2 { color: var(--green); }
+  .err h2 { color: var(--red); }
+  .err pre { border-color: var(--red); }
+  @media (max-width: 760px) { .cols { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<h1><a href="https://github.com/Xu107-hhh/moonbit-jsonpatch">moonbit-jsonpatch</a> playground</h1>
+<div class="sub">RFC 6902 JSON Patch · RFC 7386 Merge Patch — 编译为 JavaScript 在浏览器内运行，无服务器</div>
+
+<div class="tabs">
+  <button id="tab-apply" class="active">Apply Patch</button>
+  <button id="tab-diff">Diff</button>
+  <button id="tab-merge">Merge Patch</button>
+</div>
+
+<div class="cols">
+  <div class="col">
+    <label id="label-a">document</label>
+    <textarea id="input-a" spellcheck="false"></textarea>
+  </div>
+  <div class="col">
+    <label id="label-b">patch</label>
+    <textarea id="input-b" spellcheck="false"></textarea>
+  </div>
+</div>
+
+<div class="result" id="result" style="display:none">
+  <h2 id="result-title"></h2>
+  <pre id="result-body"></pre>
+</div>
+
+<script type="module">
+import { apply, diff, merge } from "./patch.mjs";
+
+const EXAMPLES = {
+  apply: {
+    a: `{
+  "name": "moonbit-jsonpatch",
+  "version": 1,
+  "tags": ["json", "patch"],
+  "maintainer": { "name": "Xu", "active": true }
+}`,
+    b: `[
+  { "op": "test", "path": "/version", "value": 1 },
+  { "op": "replace", "path": "/version", "value": 2 },
+  { "op": "add", "path": "/tags/-", "value": "rfc6902" },
+  { "op": "remove", "path": "/maintainer/active" },
+  { "op": "copy", "from": "/name", "path": "/maintainer/repo" }
+]`
+  },
+  diff: {
+    a: `{ "a": 1, "b": [1, 2], "c": "keep" }`,
+    b: `{ "a": 2, "b": [1, 2, 3], "d": "new" }`
+  },
+  merge: {
+    a: `{ "title": "hello", "author": { "name": "Xu", "email": "x@y.z" } }`,
+    b: `{ "title": "hi", "author": { "email": null } }`
+  }
+};
+
+const LABELS = {
+  apply: ["document", "patch (RFC 6902)"],
+  diff: ["original", "modified"],
+  merge: ["target", "merge patch (RFC 7386)"]
+};
+
+let mode = "apply";
+let timer = null;
+
+const el = id => document.getElementById(id);
+
+function setMode(m) {
+  mode = m;
+  for (const t of ["apply", "diff", "merge"]) {
+    el("tab-" + t).classList.toggle("active", t === m);
+  }
+  el("label-a").textContent = LABELS[m][0];
+  el("label-b").textContent = LABELS[m][1];
+  el("input-a").value = EXAMPLES[m].a;
+  el("input-b").value = EXAMPLES[m].b;
+  run();
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function pretty(v) {
+  try { return JSON.stringify(v, null, 2); }
+  catch (e) { return String(v); }
+}
+
+function run() {
+  const box = el("result");
+  const a = el("input-a").value;
+  const b = el("input-b").value;
+  let report;
+  try {
+    report = mode === "apply" ? apply(a, b)
+           : mode === "diff" ? diff(a, b)
+           : merge(a, b);
+  } catch (e) {
+    box.className = "result err";
+    el("result-title").textContent = "internal error";
+    el("result-body").textContent = String(e);
+    box.style.display = "";
+    return;
+  }
+  let parsed;
+  try { parsed = JSON.parse(report); }
+  catch (e) { parsed = null; }
+  if (!parsed) {
+    box.className = "result err";
+    el("result-title").textContent = "bad report";
+    el("result-body").textContent = report;
+    box.style.display = "";
+    return;
+  }
+  if (parsed.ok) {
+    box.className = "result ok";
+    el("result-title").textContent = "result";
+    el("result-body").textContent = pretty(parsed.result);
+  } else {
+    box.className = "result err";
+    const where = parsed.index !== undefined && parsed.index !== -1
+      ? ` (operation ${parsed.index}${parsed.op ? ", " + parsed.op : ""}${parsed.path ? ", path " + parsed.path : ""})`
+      : "";
+    el("result-title").textContent = `${parsed.stage ?? "error"}${where}`;
+    el("result-body").textContent = parsed.message ?? "";
+  }
+  box.style.display = "";
+}
+
+for (const t of ["apply", "diff", "merge"]) {
+  el("tab-" + t).addEventListener("click", () => setMode(t));
+}
+el("input-a").addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(run, 250); });
+el("input-b").addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(run, 250); });
+
+setMode("apply");
+</script>
+</body>
+</html>
