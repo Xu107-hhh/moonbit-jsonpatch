@@ -224,8 +224,9 @@ fn tree_remove(
 ///|
 /// Deep structural equality per RFC 6902 "test": numbers compare by
 /// mathematical value, strings code-point-wise, objects and arrays
-/// recursively regardless of member order.
-fn json_equal(a : Json, b : Json) -> Bool {
+/// recursively regardless of member order. Exposed because it defines
+/// what "the same value" means for patch operations.
+pub fn json_equal(a : Json, b : Json) -> Bool {
   match (a, b) {
     (Null, Null) => true
     (True, True) => true

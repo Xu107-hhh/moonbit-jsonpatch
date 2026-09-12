@@ -1,4 +1,5 @@
 _build/
 target/
 .mooncakes/
+.mimosa/
 suite/_upstream/
