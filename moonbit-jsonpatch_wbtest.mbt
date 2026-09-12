@@ -25,22 +25,22 @@ fn expect_fail(doc : String, patch : String, kind : PatchErrorKind) -> Bool {
 
 ///|
 test "pointer: root, empty key, escapes, malformed" {
-  inspect(parse_pointer(""), content="Some([])")
+  inspect(parse_pointer("") is Some([]), content="true")
   // Debug rendering cannot show the empty-string token, so check "/" structurally
   match parse_pointer("/") {
     Some(t) => inspect(t.length() == 1 && t[0] == "", content="true")
     None => inspect("expected one empty token", content="")
   }
-  inspect(parse_pointer("/a/b"), content="Some([a, b])")
-  inspect(parse_pointer("/a~1b"), content="Some([a/b])")
-  inspect(parse_pointer("/a~0b"), content="Some([a~b])")
-  inspect(parse_pointer("a/b"), content="None")
-  inspect(parse_pointer("/a~2b"), content="None")
-  inspect(parse_pointer("/a~"), content="None")
-  inspect(parse_index("0"), content="Some(0)")
-  inspect(parse_index("10"), content="Some(10)")
-  inspect(parse_index("01"), content="None")
-  inspect(parse_index("-"), content="None")
+  inspect(parse_pointer("/a/b") is Some(["a", "b"]), content="true")
+  inspect(parse_pointer("/a~1b") is Some(["a/b"]), content="true")
+  inspect(parse_pointer("/a~0b") is Some(["a~b"]), content="true")
+  inspect(parse_pointer("a/b") is None, content="true")
+  inspect(parse_pointer("/a~2b") is None, content="true")
+  inspect(parse_pointer("/a~") is None, content="true")
+  inspect(parse_index("0") is Some(0), content="true")
+  inspect(parse_index("10") is Some(10), content="true")
+  inspect(parse_index("01") is None, content="true")
+  inspect(parse_index("-") is None, content="true")
   inspect(escape_token("a/b~c"), content="a~1b~0c")
 }
 

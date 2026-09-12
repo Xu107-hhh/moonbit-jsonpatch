@@ -49,30 +49,21 @@ def gen_file(source: Path) -> str:
         lines.append(f'test "{tname}" {{')
         if comment:
             lines.append(f"  // {comment}")
-        lines.append(f"  let doc : Json = @json.parse({literal(case['doc'])})")
+        lines.append(f"  let doc : Json = parse_fixture({literal(case['doc'])})")
         lines.append(
-            f"  let patch : Json = @json.parse({literal(case['patch'])})"
+            f"  let patch : Json = parse_fixture({literal(case['patch'])})"
         )
         if "expected" in case:
             lines.append(
-                f"  let expected : Json = @json.parse("
+                f"  let expected : Json = parse_fixture("
                 f"{literal(case['expected'])})"
             )
-            lines.append("  match @jsonpatch.apply_patch(doc, patch) {")
             lines.append(
-                "    Ok(result) => inspect(@jsonpatch.json_equal(result, expected), content=\"true\")"
+                "    inspect(@jsonpatch.json_equal(apply_ok(doc, patch), expected),"
+                ' content="true")'
             )
-            lines.append(
-                "    Err(_) => inspect(\"expected success\", content=\"\")"
-            )
-            lines.append("  }")
         else:
-            lines.append("  match @jsonpatch.apply_patch(doc, patch) {")
-            lines.append(
-                "    Ok(_) => inspect(\"expected failure\", content=\"\")"
-            )
-            lines.append("    Err(_) => inspect(true, content=\"true\")")
-            lines.append("  }")
+            lines.append('    inspect(apply_err(doc, patch), content="true")')
         lines.append("}")
         lines.append("")
     header = (
@@ -88,7 +79,7 @@ def main() -> None:
     total = 0
     for source in sorted(FIXTURES.glob("*.json")):
         text = gen_file(source)
-        target = OUT / f"{source.stem}_wbtest.mbt"
+        target = OUT / f"{source.stem}_test.mbt"
         target.write_text(text, encoding="utf-8", newline="\n")
         count = text.count('test "')
         total += count
