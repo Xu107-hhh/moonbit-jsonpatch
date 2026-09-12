@@ -8,8 +8,9 @@ all addressing locations with JSON Pointers (RFC 6901) and reporting
 failures down to the exact operation and path.
 
 moonbit-jsonpatch 是 MoonBit 实现的 **JSON Patch（RFC 6902）工具库**：
-应用补丁、计算两个文档的差量（diff）、应用 JSON Merge Patch（RFC 7386），
-路径寻址遵循 JSON Pointer（RFC 6901），失败时精确报告到第几个操作、哪个路径。
+应用补丁、计算两个文档的差量（diff）、应用 JSON Merge Patch（RFC 7386，
+被 RFC 7396 取代但语义相同），路径寻址遵循 JSON Pointer（RFC 6901），
+失败时精确报告到第几个操作、哪个路径。
 
 **官方 [json-patch-tests](https://github.com/json-patch/json-patch-tests) 通过率：108 / 108（100%）** —— 见下文 [Conformance](#conformance--标准符合性)。
 
