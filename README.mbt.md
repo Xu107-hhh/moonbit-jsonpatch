@@ -45,6 +45,15 @@ JSON Patch 是 HTTP PATCH、Kubernetes 资源变更、配置同步、协作编�
 与既有 JSON Schema 验证器（校验"文档对不对"）互补，本库解决
 "文档怎么从旧版本变成新版本"。
 
+## Related work / 与既有项目的关系
+
+MoonBit 生态已有的 diff/patch 类库与本项目定位错开：
+
+- [tiye/recollect](https://mooncakes.io/docs/tiye/recollect)（v0.2.1）：面向不可变 UI 框架（Cumulo/Respo）状态同步的**私有格式** diff/patch——补丁是内存中的 `PatchOp`/`PathSegment` 结构体，仅在 recollect 实例之间可用，不读写标准 JSON Patch 文档；数组操作依赖带 `"id"` 的键控数组；其 `Set` 会自动创建缺失的中间节点（RFC 6902 明确将此判定为错误）。
+- [moondiff](https://mooncakes.io/docs/moonbit-community/moondiff) / [piediff](https://mooncakes.io/docs/piediff)：文本/源码 diff（difftastic 风格、patience/Myers 算法），处理的是文本行，不是 JSON 文档结构。
+
+moonbit-jsonpatch 是 MoonBit 生态中唯一实现 IETF **标准线格式**（RFC 6902 JSON Patch / RFC 7386 Merge Patch / RFC 6901 JSON Pointer）的库：补丁本身就是标准 JSON 文档，可与任何语言的 RFC 6902 实现、HTTP PATCH 服务、Kubernetes 直接互通；语义严格遵循 RFC（不隐式创建路径、`test`/`copy`/`move` 完整、错误精确到操作与路径），并有官方测试套件 108/108 背书。私有格式方案（如 recollect）如需跨系统传输补丁，序列化为 RFC 6902 后即可与本库互补。
+
 ## Conformance / 标准符合性
 
 集成官方 [json-patch-tests](https://github.com/json-patch/json-patch-tests)
@@ -120,6 +129,7 @@ Requires the [MoonBit toolchain](https://www.moonbitlang.com/download/) (`moon`)
 moon check             # static checks
 moon fmt               # format
 moon test              # unit tests + official conformance suite
+moon run examples/basic  # runnable example (apply / diff / merge / errors)
 moon run cmd/patch --  # run the CLI
 python tools/gen_suite.py  # regenerate suite tests from fixtures
 ```
@@ -132,6 +142,7 @@ python tools/gen_suite.py  # regenerate suite tests from fixtures
 - `merge.mbt` — RFC 7386 JSON Merge Patch
 - `diff.mbt` — 差量（补丁）生成
 - `cmd/patch` — CLI（apply / merge / diff）
+- `examples/basic` — 可运行示例（moon run examples/basic）
 - `suite/fixtures` — vendored 官方测试套件（json-patch-tests）
 - `suite/gen` — 生成的符合性测试（`tools/gen_suite.py`）
 - `demo/` — 浏览器 playground（js target）
