@@ -11,7 +11,7 @@ moonbit-jsonpatch 是 MoonBit 实现的 **JSON Patch（RFC 6902）工具库**：
 应用补丁、计算两个文档的差量（diff）、应用 JSON Merge Patch（RFC 7386），
 路径寻址遵循 JSON Pointer（RFC 6901），失败时精确报告到第几个操作、哪个路径。
 
-**官方 [json-patch-tests](https://github.com/json-patch/json-patch-tests) 通过率：见 [Conformance](#conformance--标准符合性)。**
+**官方 [json-patch-tests](https://github.com/json-patch/json-patch-tests) 通过率：108 / 108（100%）** —— 见下文 [Conformance](#conformance--标准符合性)。
 
 ## Try it online / 在线体验
 
@@ -50,7 +50,11 @@ JSON Patch 是 HTTP PATCH、Kubernetes 资源变更、配置同步、协作编�
 集成官方 [json-patch-tests](https://github.com/json-patch/json-patch-tests)
 （`tests.json` + `spec_tests.json`，已 vendor 到 `suite/fixtures`，其许可为 Apache-2.0）。
 
-<!-- CONFORMANCE_TABLE -->
+| 指标 | 结果 |
+|---|---|
+| `spec_tests.json`（RFC 6902 正文附录用例） | **16 / 16 通过**（1 例上游标记 `disabled` 未纳入） |
+| `tests.json`（社区补充用例） | **92 / 92 通过**（3 例上游标记 `disabled` 未纳入） |
+| **合计** | **108 / 108（100%）** |
 
 操作覆盖：`add` / `remove` / `replace` / `move` / `copy` / `test`
 全部六种操作，含数组插入与 `-` 追加、`move` 的 remove-then-add 语义、
