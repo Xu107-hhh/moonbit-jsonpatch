@@ -2,7 +2,7 @@ name = "Xu107-hhh/moonbit-jsonpatch"
 
 version = "0.1.1"
 
-readme = "README.mbt.md"
+readme = "README.md"
 
 repository = "https://github.com/Xu107-hhh/moonbit-jsonpatch"
 
