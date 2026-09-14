@@ -309,8 +309,7 @@ fn tree_patch_error(index : Int, op : Operation, e : TreeErr) -> PatchError {
         PathNotFound,
         "an ancestor of the target location is neither an object nor an array",
       )
-    BadIndex =>
-      (Conflict, "array index is malformed or beyond the end of the array")
+    BadIndex(detail) => (Conflict, detail)
   }
   patch_error(index, op.op, op.path, kind, message)
 }
