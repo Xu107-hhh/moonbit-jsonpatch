@@ -3,7 +3,7 @@
 priv enum TreeErr {
   Missing // an ancestor or the target itself does not exist
   NotContainer // an ancestor exists but is neither object nor array
-  BadIndex // final array index malformed or out of range for the operation
+  BadIndex(String) // final array index malformed or out of range, with detail
 }
 
 ///|
@@ -155,7 +155,11 @@ fn tree_set(
           }
           return Ok(Json::array(array_append(a, value)))
         }
-        guard parse_index(head) is Some(i) else { return Err(BadIndex) }
+        guard parse_index(head) is Some(i) else {
+          return Err(
+            BadIndex("array index \"\{head}\" is not a canonical decimal index"),
+          )
+        }
         if must_exist {
           if i >= a.length() {
             return Err(Missing)
@@ -163,7 +167,11 @@ fn tree_set(
           return Ok(Json::array(array_set(a, i, value)))
         }
         if i > a.length() {
-          return Err(BadIndex) // RFC 6902: index must not exceed the length
+          return Err(
+            BadIndex(
+              "array index \{i} is beyond the end of the array (length \{a.length()})",
+            ),
+          )
         }
         return Ok(Json::array(array_insert(a, i, value)))
       }
