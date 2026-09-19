@@ -30,6 +30,9 @@ jobs:
           curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
           echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
 
+      - name: Sync registry index (moonbitlang/x dependency)
+        run: moon update
+
       - name: Build playground to JavaScript
         run: |
           moon build --release --target js demo/wasm

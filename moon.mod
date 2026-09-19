@@ -19,3 +19,7 @@ keywords = [
 preferred_target = "wasm"
 
 description = "RFC 6902 JSON Patch (apply + diff) and RFC 7386 JSON Merge Patch for MoonBit, with RFC 6901 JSON Pointer support and precise error reporting."
+
+import {
+  "moonbitlang/x@0.5.5",
+}
