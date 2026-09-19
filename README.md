@@ -132,6 +132,25 @@ $ cat patch.json | moon run --target js cmd/patch -- apply @doc.json -
 wasm 后端（`moon run` 默认）可以读文件，但宿主未开放 stdin——此时 `-`
 会给出明确报错；stdin 管道请用 `--target js`（需要 Node.js）。
 
+## Performance / 性能
+
+`moon run --release benches` 生成固定种子的确定性文档，测量 apply / diff / merge。
+下表为单次调用中位数（Windows 11 · moon 0.1.20260827 · wasm release，2026-09
+实测，绝对值随机器浮动，量级与比例可参考）：
+
+| 场景 | n=1,000 | n=10,000 | n=100,000 |
+|---|---|---|---|
+| apply 对象（100 操作） | 4.2 ms | 216 ms | 2.9 s |
+| apply 数组（100 操作） | 14 µs | 1.7 ms | 137 ms |
+| diff 对象（~15% 变更） | 6.7 µs | 0.9 ms | 129 ms |
+| diff 数组（~20% 变更） | 1.0 µs | 124 µs | 11.8 ms |
+| merge 嵌套对象 | 0.1 µs | 13 µs | 2.0 ms |
+
+成本模型与设计选择一致：库采用不可变语义，每个操作重建从根到目标的路径，
+因此对象上的 apply 大致线性于「文档大小 × 操作数」（每步复制 Map）；数组应用
+因连续内存复制远快于对象；merge patch 只递归变更涉及的分支，开销最小。
+热路径上的大文档建议优先 merge patch（RFC 7396）或数组形态。
+
 ## Development
 
 Requires the [MoonBit toolchain](https://www.moonbitlang.com/download/) (`moon`).
@@ -142,6 +161,7 @@ moon fmt               # format
 moon test              # unit tests + official conformance suite
 moon run examples/basic  # runnable example (apply / diff / merge / errors)
 moon run cmd/patch --  # run the CLI
+moon run --release benches  # benchmarks (apply / diff / merge)
 python tools/gen_suite.py  # regenerate suite tests from fixtures
 ```
 
@@ -154,6 +174,7 @@ python tools/gen_suite.py  # regenerate suite tests from fixtures
 - `diff.mbt` — 差量（补丁）生成
 - `cmd/patch` — CLI（apply / merge / diff；参数支持内联 JSON、`@文件`、`-` stdin）
 - `examples/basic` — 可运行示例（moon run examples/basic）
+- `benches/` — 基准测试（moon run --release benches，固定种子可复现）
 - `suite/fixtures` — vendored 官方测试套件（json-patch-tests）
 - `suite/gen` — 生成的符合性测试（`tools/gen_suite.py`）
 - `demo/` — 浏览器 playground（js target）
