@@ -1,0 +1,7 @@
+import {
+  "moonbitlang/core/bench",
+  "moonbitlang/core/random",
+  "Xu107-hhh/moonbit-jsonpatch" @lib,
+}
+
+pkgtype(kind: "executable")
