@@ -122,6 +122,16 @@ $ moon run cmd/patch -- merge '{"a":{"x":1,"y":2}}' '{"a":{"y":null,"z":3}}'
 {"a":{"x":1,"z":3}}
 ```
 
+每个文档参数除了内联 JSON，还支持 **`@文件路径`**（读文件）和 **`-`**（读 stdin，js 后端）：
+
+```bash
+$ moon run cmd/patch -- apply @doc.json @patch.json
+$ cat patch.json | moon run --target js cmd/patch -- apply @doc.json -
+```
+
+wasm 后端（`moon run` 默认）可以读文件，但宿主未开放 stdin——此时 `-`
+会给出明确报错；stdin 管道请用 `--target js`（需要 Node.js）。
+
 ## Development
 
 Requires the [MoonBit toolchain](https://www.moonbitlang.com/download/) (`moon`).
@@ -142,7 +152,7 @@ python tools/gen_suite.py  # regenerate suite tests from fixtures
 - `apply.mbt` — 补丁文档校验与六种操作的应用
 - `merge.mbt` — RFC 7386 JSON Merge Patch
 - `diff.mbt` — 差量（补丁）生成
-- `cmd/patch` — CLI（apply / merge / diff）
+- `cmd/patch` — CLI（apply / merge / diff；参数支持内联 JSON、`@文件`、`-` stdin）
 - `examples/basic` — 可运行示例（moon run examples/basic）
 - `suite/fixtures` — vendored 官方测试套件（json-patch-tests）
 - `suite/gen` — 生成的符合性测试（`tools/gen_suite.py`）

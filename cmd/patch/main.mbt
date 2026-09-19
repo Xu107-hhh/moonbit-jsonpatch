@@ -6,6 +6,11 @@
 ///   moon run cmd/patch -- merge '<target-json>' '<merge-patch-json>'
 ///   moon run cmd/patch -- diff '<original-json>' '<modified-json>'
 ///
+/// Every document argument also accepts `@path` to read from a file, or `-`
+/// to read from stdin (js backend only):
+///   moon run cmd/patch -- apply @doc.json @patch.json
+///   cat patch.json | moon run --target js cmd/patch -- apply doc.json -
+///
 /// Prints the resulting JSON, or a diagnostic, and exits non-zero on
 /// failure.
 fn main {
@@ -18,30 +23,39 @@ fn main {
       ),
       @argparse.PositionArg::PositionArg(
         "document",
-        about="target JSON document as text",
+        about="JSON text, @file, or - for stdin",
       ),
       @argparse.PositionArg::PositionArg(
         "patch",
-        about="patch document (apply/merge) or second document (diff)",
+        about="patch document (apply/merge), second document (diff); JSON text, @file, or -",
       ),
     ],
     about="RFC 6902 JSON Patch and RFC 7386 JSON Merge Patch",
   )
-  let matches = cmd.parse() catch {
+  let matches = cmd.parse(argv=cli_args()) catch {
     _ => return // argparse has already printed its error/help
   }
   let command = match matches.values.get("command") {
     Some(arr) if arr.length() > 0 => arr[0]
     _ => return
   }
-  let document = match matches.values.get("document") {
-    Some(arr) if arr.length() > 0 => arr[0]
-    _ => return
+  fn arg_or_fail(name : String) -> String {
+    match matches.values.get(name) {
+      Some(arr) if arr.length() > 0 => arr[0]
+      _ => abort("missing argument: \{name}")
+    }
   }
-  let patch = match matches.values.get("patch") {
-    Some(arr) if arr.length() > 0 => arr[0]
-    _ => return
+  fn input_or_fail(name : String, what : String) -> String {
+    match read_input(arg_or_fail(name), what) {
+      Ok(text) => text
+      Err(msg) => {
+        println(msg)
+        abort("input error")
+      }
+    }
   }
+  let document = input_or_fail("document", "document")
+  let patch = input_or_fail("patch", "patch")
   match command {
     "apply" =>
       match @lib.apply(document, patch) {

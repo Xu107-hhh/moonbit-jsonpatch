@@ -1,6 +1,17 @@
 import {
   "moonbitlang/core/argparse",
+  "moonbitlang/core/encoding/utf8",
+  "moonbitlang/core/env",
+  "moonbitlang/x/fs",
   "Xu107-hhh/moonbit-jsonpatch" @lib,
 }
 
 pkgtype(kind: "executable")
+
+options(
+  targets: {
+    "platform_js.mbt": [ "js" ],
+    "platform_wasm.mbt": [ "wasm", "wasm-gc" ],
+    "platform_native.mbt": [ "native", "llvm" ],
+  },
+)
