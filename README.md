@@ -190,6 +190,7 @@ python tools/gen_suite.py  # regenerate suite tests from fixtures
 - `diff.mbt` — 差量（补丁）生成；`diff_keyed` 支持按唯一键对齐数组
 - `cmd/patch` — CLI（apply / merge / diff；参数支持内联 JSON、`@文件`、`-` stdin）
 - `examples/basic` — 可运行示例（moon run examples/basic）
+- `examples/ai` — AI agent 用 JSON Patch 编辑共享文档（moon run examples/ai：省 token、`test` 守卫拒绝过期编辑、`diff_keyed` 恢复对齐）
 - `benches/` — 基准测试（moon run --release benches，固定种子可复现）
 - `suite/fixtures` — vendored 官方测试套件（json-patch-tests）
 - `suite/gen` — 生成的符合性测试（`tools/gen_suite.py`）
