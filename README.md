@@ -193,6 +193,7 @@ python tools/gen_suite.py  # regenerate suite tests from fixtures
 - `examples/ai` — AI agent 用 JSON Patch 编辑共享文档（moon run examples/ai：省 token、`test` 守卫拒绝过期编辑、`diff_keyed` 恢复对齐）
 - `benches/` — 基准测试（moon run --release benches，固定种子可复现）
 - `suite/fixtures` — vendored 官方测试套件（json-patch-tests）
+- `docs/design-faq.md` — 设计决策 FAQ：每个关键选择（不可变语义、错误模型、keyed diff 边界、基准方法）的为什么
 - `suite/gen` — 生成的符合性测试（`tools/gen_suite.py`）
 - `demo/` — 浏览器 playground（js target）
 
