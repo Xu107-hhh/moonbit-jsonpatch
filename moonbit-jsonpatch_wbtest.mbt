@@ -442,3 +442,118 @@ test "text-level apply separates parse errors" {
     _ => inspect("expected ok", content="")
   }
 }
+
+///|
+/// Assert that the keyed diff of `a` to `b` applies cleanly back to `b`.
+fn expect_keyed_roundtrip(a : String, b : String, key : String) -> Bool {
+  match apply_patch(parse_ok(a), diff_keyed(parse_ok(a), parse_ok(b), key)) {
+    Ok(result) => json_equal(result, parse_ok(b))
+    Err(_) => false
+  }
+}
+
+///|
+test "keyed diff: insert in the middle is a single add" {
+  let a = "{\"list\":[{\"id\":1},{\"id\":2}]}"
+  let b = "{\"list\":[{\"id\":0},{\"id\":1},{\"id\":2}]}"
+  inspect(
+    diff_keyed(parse_ok(a), parse_ok(b), "id").stringify(),
+    content="[{\"op\":\"add\",\"path\":\"/list/0\",\"value\":{\"id\":0}}]",
+  )
+  inspect(expect_keyed_roundtrip(a, b, "id"), content="true")
+}
+
+///|
+test "keyed diff: remove in the middle is a single remove" {
+  let a = "{\"list\":[{\"id\":1},{\"id\":2},{\"id\":3}]}"
+  let b = "{\"list\":[{\"id\":1},{\"id\":3}]}"
+  inspect(
+    diff_keyed(parse_ok(a), parse_ok(b), "id").stringify(),
+    content="[{\"op\":\"remove\",\"path\":\"/list/1\"}]",
+  )
+  inspect(expect_keyed_roundtrip(a, b, "id"), content="true")
+}
+
+///|
+test "keyed diff: field change inside a surviving item recurses" {
+  let a = "{\"list\":[{\"id\":1,\"a\":{\"b\":1}},{\"id\":2}]}"
+  let b = "{\"list\":[{\"id\":1,\"a\":{\"b\":2}},{\"id\":2}]}"
+  inspect(
+    diff_keyed(parse_ok(a), parse_ok(b), "id").stringify(),
+    content="[{\"op\":\"replace\",\"path\":\"/list/0/a/b\",\"value\":2}]",
+  )
+  inspect(expect_keyed_roundtrip(a, b, "id"), content="true")
+}
+
+///|
+test "keyed diff: mixed removal, insert and change" {
+  let a = "{\"rows\":[{\"id\":1,\"n\":1},{\"id\":2},{\"id\":3,\"n\":3}]}"
+  let b = "{\"rows\":[{\"id\":9},{\"id\":1,\"n\":1},{\"id\":3,\"n\":4}]}"
+  // id:2 disappears, id:9 appears in front, id:3 changes one field
+  let patch = diff_keyed(parse_ok(a), parse_ok(b), "id")
+  inspect(
+    patch.stringify(),
+    content="[{\"op\":\"remove\",\"path\":\"/rows/1\"},{\"op\":\"add\",\"path\":\"/rows/0\",\"value\":{\"id\":9}},{\"op\":\"replace\",\"path\":\"/rows/2/n\",\"value\":4}]",
+  )
+  inspect(expect_keyed_roundtrip(a, b, "id"), content="true")
+}
+
+///|
+test "keyed diff: nested arrays are keyed too" {
+  let a = "{\"g\":{\"list\":[{\"id\":1,\"tags\":[{\"id\":\"t1\"},{\"id\":\"t2\"}]}]}}"
+  let b = "{\"g\":{\"list\":[{\"id\":1,\"tags\":[{\"id\":\"t2\"}]}]}}"
+  inspect(
+    diff_keyed(parse_ok(a), parse_ok(b), "id").stringify(),
+    content="[{\"op\":\"remove\",\"path\":\"/g/list/0/tags/0\"}]",
+  )
+  inspect(expect_keyed_roundtrip(a, b, "id"), content="true")
+}
+
+///|
+test "keyed diff: non-object items fall back to positional" {
+  let a = "{\"list\":[1,2,3]}"
+  let b = "{\"list\":[1,9,3]}"
+  inspect(
+    diff_keyed(parse_ok(a), parse_ok(b), "id").stringify(),
+    content="[{\"op\":\"replace\",\"path\":\"/list/1\",\"value\":9}]",
+  )
+}
+
+///|
+test "keyed diff: duplicate keys fall back to positional" {
+  let a = "{\"list\":[{\"id\":1},{\"id\":1}]}"
+  let b = "{\"list\":[{\"id\":1}]}"
+  inspect(
+    diff_keyed(parse_ok(a), parse_ok(b), "id").stringify(),
+    content="[{\"op\":\"remove\",\"path\":\"/list/1\"}]",
+  )
+  inspect(expect_keyed_roundtrip(a, b, "id"), content="true")
+}
+
+///|
+test "keyed diff: missing key member falls back to positional" {
+  let a = "{\"list\":[{\"id\":1},{\"name\":\"x\"}]}"
+  let b = "{\"list\":[{\"id\":1},{\"name\":\"y\"}]}"
+  inspect(
+    diff_keyed(parse_ok(a), parse_ok(b), "id").stringify(),
+    content="[{\"op\":\"replace\",\"path\":\"/list/1/name\",\"value\":\"y\"}]",
+  )
+  inspect(expect_keyed_roundtrip(a, b, "id"), content="true")
+}
+
+///|
+test "keyed diff: reordering falls back to positional and still roundtrips" {
+  let a = "{\"list\":[{\"id\":1},{\"id\":2},{\"id\":3}]}"
+  let b = "{\"list\":[{\"id\":3},{\"id\":2},{\"id\":1}]}"
+  inspect(
+    diff_keyed(parse_ok(a), parse_ok(b), "id").stringify(),
+    content="[{\"op\":\"replace\",\"path\":\"/list/0/id\",\"value\":3},{\"op\":\"replace\",\"path\":\"/list/2/id\",\"value\":1}]",
+  )
+  inspect(expect_keyed_roundtrip(a, b, "id"), content="true")
+}
+
+///|
+test "keyed diff: equal documents produce an empty patch" {
+  let a = "{\"list\":[{\"id\":1},{\"id\":2}]}"
+  inspect(diff_keyed(parse_ok(a), parse_ok(a), "id").stringify(), content="[]")
+}
