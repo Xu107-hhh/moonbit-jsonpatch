@@ -55,6 +55,27 @@ pub fn diff(original_text : String, modified_text : String) -> String {
 }
 
 ///|
+/// Keyed variant of `diff` for the playground: match array items by the
+/// `key` member before diffing (see `@lib.diff_keyed`).
+#export_name("diff_keyed")
+pub fn diff_keyed(
+  original_text : String,
+  modified_text : String,
+  key : String,
+) -> String {
+  let original : Json = @json.parse(original_text) catch {
+    e => return error_report("document", e.to_string(), -1, "", "")
+  }
+  let modified : Json = @json.parse(modified_text) catch {
+    e => return error_report("patch", e.to_string(), -1, "", "")
+  }
+  let m : Map[String, Json] = Map([])
+  m.set("ok", Json::boolean(true))
+  m.set("result", @lib.diff_keyed(original, modified, key))
+  Json::object(m).stringify()
+}
+
+///|
 #export_name("merge")
 pub fn merge(target_text : String, patch_text : String) -> String {
   let target : Json = @json.parse(target_text) catch {

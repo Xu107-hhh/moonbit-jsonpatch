@@ -102,6 +102,18 @@ Err(@jsonpatch.PatchError::{ index: 1, op: "add", path: "/x/9", ... })
 @jsonpatch.merge_patch(target, p)  // RFC 7386，null 删除成员、对象递归合并
 ```
 
+按 id 对齐数组再 diff（`diff_keyed`）——元素带唯一键的数组（如
+`[{"id":1,...},{"id":2,...}]`）按键匹配而非按位置：中间插入只产生一个
+`add`、删除一个 `remove`、存活元素内部递归 diff。元素不是对象 / 键不唯一 /
+相对顺序改变时自动回退位置 diff（重排序不建模为 move，边界明确）：
+
+```moonbit nocheck
+// 删除中间项并在头部插入新项：
+@jsonpatch.diff_keyed(old, new, "id")
+// -> [{"op":"remove","path":"/list/1"},{"op":"add","path":"/list/0","value":{"id":0}}]
+// 位置 diff 则会输出连锁 replace（把 id:1 改成 id:0、id:2 改成 id:1）
+```
+
 文本直入（自动区分解析错误与应用错误）：
 
 ```moonbit nocheck
@@ -117,6 +129,10 @@ $ moon run cmd/patch -- apply '{"a":1,"list":[1,2]}' \
 
 $ moon run cmd/patch -- diff '{"a":1,"b":2}' '{"a":2,"c":3}'
 [{"op":"remove","path":"/b"},{"op":"replace","path":"/a","value":2},{"op":"add","path":"/c","value":3}]
+
+$ moon run cmd/patch -- diff '{"list":[{"id":1},{"id":2},{"id":3}]}' \
+    '{"list":[{"id":0},{"id":1},{"id":3}]}' --key id
+[{"op":"remove","path":"/list/1"},{"op":"add","path":"/list/0","value":{"id":0}}]
 
 $ moon run cmd/patch -- merge '{"a":{"x":1,"y":2}}' '{"a":{"y":null,"z":3}}'
 {"a":{"x":1,"z":3}}
@@ -171,7 +187,7 @@ python tools/gen_suite.py  # regenerate suite tests from fixtures
 - `tree.mbt` — 不可变树定位与函数式更新、深度相等
 - `apply.mbt` — 补丁文档校验与六种操作的应用
 - `merge.mbt` — RFC 7386 JSON Merge Patch
-- `diff.mbt` — 差量（补丁）生成
+- `diff.mbt` — 差量（补丁）生成；`diff_keyed` 支持按唯一键对齐数组
 - `cmd/patch` — CLI（apply / merge / diff；参数支持内联 JSON、`@文件`、`-` stdin）
 - `examples/basic` — 可运行示例（moon run examples/basic）
 - `benches/` — 基准测试（moon run --release benches，固定种子可复现）

@@ -30,6 +30,13 @@ fn main {
         about="patch document (apply/merge), second document (diff); JSON text, @file, or -",
       ),
     ],
+    options=[
+      @argparse.OptionArg::OptionArg(
+        "key",
+        long="key",
+        about="diff only: match array items by this member (e.g. id) instead of position",
+      ),
+    ],
     about="RFC 6902 JSON Patch and RFC 7386 JSON Merge Patch",
   )
   let matches = cmd.parse(argv=cli_args()) catch {
@@ -87,8 +94,16 @@ fn main {
           abort("invalid patch")
         }
       }
-    "diff" =>
-      match @lib.diff_text(document, patch) {
+    "diff" => {
+      let keyed = match matches.values.get("key") {
+        Some(arr) if arr.length() > 0 => Some(arr[0])
+        _ => None
+      }
+      let result = match keyed {
+        Some(key) => @lib.diff_text_keyed(document, patch, key)
+        None => @lib.diff_text(document, patch)
+      }
+      match result {
         Ok(out) => println(out)
         Err(@lib.BadTargetJson(msg)) => {
           println("original parse error: \{msg}")
@@ -99,6 +114,7 @@ fn main {
           abort("invalid modified")
         }
       }
+    }
     _ => {
       println("unknown command: \{command} (expected apply, merge, or diff)")
       abort("bad command")
