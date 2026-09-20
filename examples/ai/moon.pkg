@@ -1,0 +1,6 @@
+import {
+  "moonbitlang/core/json",
+  "Xu107-hhh/moonbit-jsonpatch" @jsonpatch,
+}
+
+pkgtype(kind: "executable")
