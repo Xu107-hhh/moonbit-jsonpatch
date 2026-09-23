@@ -44,6 +44,18 @@ fn main {
   let merge = parse("{\"title\": \"hi\", \"author\": {\"email\": null}}")
   println("merge: \{@jsonpatch.merge_patch(target, merge).stringify()}")
 
+  // keyed diff: id-bearing arrays are matched by identity, so a middle
+  // change costs one semantic operation instead of cascading replaces.
+  let board_old = parse(
+    "{\"todos\": [{\"id\": 1, \"done\": true}, {\"id\": 2, \"done\": false}, {\"id\": 3, \"done\": false}]}",
+  )
+  let board_new = parse(
+    "{\"todos\": [{\"id\": 1, \"done\": true}, {\"id\": 3, \"done\": true}]}",
+  )
+  let keyed = @jsonpatch.diff_keyed(board_old, board_new, "id")
+  println("keyed diff: \{keyed.stringify()}")
+  println("positional: \{@jsonpatch.diff(board_old, board_new).stringify()}")
+
   // Error reporting: failures name the operation and the exact path.
   let bad = parse("[{\"op\": \"add\", \"path\": \"/a/x\", \"value\": 1}]")
   match @jsonpatch.apply_patch(parse("{\"a\": 1}"), bad) {
