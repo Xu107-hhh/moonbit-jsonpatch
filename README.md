@@ -65,6 +65,8 @@ moonbit-jsonpatch 是 MoonBit 生态中唯一实现 IETF **标准线格式**（R
 | `spec_tests.json`（RFC 6902 正文附录用例） | **16 / 16 通过**（1 例上游标记 `disabled` 未纳入） |
 | `tests.json`（社区补充用例） | **92 / 92 通过**（3 例上游标记 `disabled` 未纳入） |
 | **合计** | **108 / 108（100%）** |
+| 属性测试 | **380 对固定种子随机文档 × 5 类不变量**（diff/keyed 回放必还原、merge 幂等、输入永不被改），见 `suite/property` |
+| 总测试 | **143 / 143** |
 
 操作覆盖：`add` / `remove` / `replace` / `move` / `copy` / `test`
 全部六种操作，含数组插入与 `-` 追加、`move` 的 remove-then-add 语义、
