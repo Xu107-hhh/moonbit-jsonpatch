@@ -1,0 +1,4 @@
+import {
+  "moonbitlang/core/quickcheck",
+  "Xu107-hhh/moonbit-jsonpatch" @jsonpatch,
+}
