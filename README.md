@@ -174,7 +174,7 @@ Requires the [MoonBit toolchain](https://www.moonbitlang.com/download/) (`moon`)
 ```bash
 moon check             # static checks
 moon fmt               # format
-moon test              # unit tests + official conformance suite
+moon test              # unit tests + official conformance suite + property tests
 moon run examples/basic  # runnable example (apply / diff / merge / errors)
 moon run cmd/patch --  # run the CLI
 moon run --release benches  # benchmarks (apply / diff / merge)
@@ -195,6 +195,7 @@ python tools/gen_suite.py  # regenerate suite tests from fixtures
 - `suite/fixtures` — vendored 官方测试套件（json-patch-tests）
 - `docs/design-faq.md` — 设计决策 FAQ：每个关键选择（不可变语义、错误模型、keyed diff 边界、基准方法）的为什么
 - `suite/gen` — 生成的符合性测试（`tools/gen_suite.py`）
+- `suite/property` — 属性测试（固定种子随机文档：diff/keyed diff 回放必还原、merge 幂等、输入永不被改）
 - `demo/` — 浏览器 playground（js target）
 
 ## License
