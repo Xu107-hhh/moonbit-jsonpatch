@@ -9,6 +9,12 @@ pub enum PatchErrorKind {
 } derive(Debug, Eq)
 
 ///|
+pub extend PatchErrorKind with @debug.Debug::{to_repr}
+
+///|
+pub extend PatchErrorKind with Eq::{not_equal, equal}
+
+///|
 /// A single failure while parsing or applying a JSON Patch document.
 pub(all) struct PatchError {
   index : Int // index of the failing operation, -1 for patch-level errors
@@ -17,6 +23,12 @@ pub(all) struct PatchError {
   kind : PatchErrorKind
   message : String
 } derive(Debug, Eq)
+
+///|
+pub extend PatchError with @debug.Debug::{to_repr}
+
+///|
+pub extend PatchError with Eq::{not_equal, equal}
 
 ///|
 /// Errors from the text-level `apply` entry point: JSON syntax problems
@@ -28,12 +40,24 @@ pub enum JsonPatchError {
 } derive(Debug, Eq)
 
 ///|
+pub extend JsonPatchError with @debug.Debug::{to_repr}
+
+///|
+pub extend JsonPatchError with Eq::{not_equal, equal}
+
+///|
 /// JSON syntax problems with text-level `merge` / `diff_text` inputs
 /// (first / second argument respectively).
 pub enum TextJsonError {
   BadTargetJson(String)
   BadPatchJson(String)
 } derive(Debug, Eq)
+
+///|
+pub extend TextJsonError with @debug.Debug::{to_repr}
+
+///|
+pub extend TextJsonError with Eq::{not_equal, equal}
 
 ///|
 /// Assemble a `PatchError` without repeating the field names.

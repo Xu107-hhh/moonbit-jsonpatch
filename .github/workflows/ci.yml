@@ -22,6 +22,9 @@ jobs:
       - name: moon check
         run: moon check
 
+      - name: moon build
+        run: moon build
+
       - name: moon fmt (verify no diff)
         run: |
           moon fmt
@@ -29,3 +32,8 @@ jobs:
 
       - name: moon test
         run: moon test
+
+      - name: run examples (runnability check)
+        run: |
+          moon run examples/basic
+          moon run examples/ai

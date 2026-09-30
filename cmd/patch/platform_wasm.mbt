@@ -2,7 +2,7 @@
 /// Program arguments with the program path stripped: moonrun passes
 /// `[program.wasm, args...]`.
 fn cli_args() -> ArrayView[String] {
-  @env.args().view(start=1)
+  @env.args().exact_view(start=1)
 }
 
 ///|
