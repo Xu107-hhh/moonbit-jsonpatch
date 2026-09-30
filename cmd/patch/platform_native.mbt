@@ -2,7 +2,7 @@
 /// Program arguments with the program path stripped: the native runtime
 /// passes `[program, args...]`.
 fn cli_args() -> ArrayView[String] {
-  @env.args().view(start=1)
+  @env.args().exact_view(start=1)
 }
 
 ///|

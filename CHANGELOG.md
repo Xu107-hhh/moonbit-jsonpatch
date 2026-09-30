@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- Toolchain compliance with moonc 0.10.14: the conformance-suite generator
+  and all test files use explicit package qualifiers (`@gen.`, `@property.`)
+  as the new test-import check requires; error types declare their derived
+  `Debug`/`Eq` methods explicitly; `Array::view` replaced by `exact_view`.
+- The js-backend stdin reader decodes UTF-8 with a fatal `TextDecoder` in
+  the FFI wrapper (invalid input is still rejected, now without a js-only
+  package import); error messages are unchanged.
+- CI now runs `moon build` and executes both examples in addition to
+  check/fmt/test, covering the build-and-run acceptance criteria.
+
 ## 0.2.0 — 2026-09-20
 
 ### Added

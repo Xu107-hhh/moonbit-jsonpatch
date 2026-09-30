@@ -5,9 +5,9 @@
 /// idempotence, and input immutability.
 test "property: positional diff round-trips random documents" {
   for i = 0; i < 80; i = i + 1 {
-    let a = gen_json().sample(size=8, seed=u64(i))
-    let b = gen_json().sample(size=8, seed=u64(100_000 + i))
-    if !roundtrip_ok(a, b, None) {
+    let a = @property.gen_json().sample(size=8, seed=@property.u64(i))
+    let b = @property.gen_json().sample(size=8, seed=@property.u64(100_000 + i))
+    if !@property.roundtrip_ok(a, b, None) {
       println("counterexample seeds (\{i}, \{100_000 + i}):")
       println("a = \{a.stringify()}")
       println("b = \{b.stringify()}")
@@ -19,11 +19,11 @@ test "property: positional diff round-trips random documents" {
 ///|
 test "property: keyed diff round-trips the same random documents" {
   for i = 0; i < 80; i = i + 1 {
-    let a = gen_json().sample(size=8, seed=u64(200_000 + i))
-    let b = gen_json().sample(size=8, seed=u64(300_000 + i))
+    let a = @property.gen_json().sample(size=8, seed=@property.u64(200_000 + i))
+    let b = @property.gen_json().sample(size=8, seed=@property.u64(300_000 + i))
     // random documents are rarely key-eligible; they exercise the
     // fallback, which must round-trip exactly like positional diff
-    if !roundtrip_ok(a, b, Some("id")) {
+    if !@property.roundtrip_ok(a, b, Some("id")) {
       println("counterexample seeds (\{200_000 + i}, \{300_000 + i}):")
       println("a = \{a.stringify()}")
       println("b = \{b.stringify()}")
@@ -37,9 +37,9 @@ test "property: keyed diff round-trips identity-matched boards" {
   for i = 0; i < 60; i = i + 1 {
     let count = i % 7
     let seed = i.to_uint64() * 7919UL + 13UL
-    let a = board_from_values(count, seed)
-    let b = board_variant(a, seed * 3UL + 1UL)
-    if !roundtrip_ok(a, b, Some("id")) {
+    let a = @property.board_from_values(count, seed)
+    let b = @property.board_variant(a, seed * 3UL + 1UL)
+    if !@property.roundtrip_ok(a, b, Some("id")) {
       println("counterexample i=\{i}:")
       println("a = \{a.stringify()}")
       println("b = \{b.stringify()}")
@@ -51,8 +51,8 @@ test "property: keyed diff round-trips identity-matched boards" {
 ///|
 test "property: merge patch is idempotent" {
   for i = 0; i < 80; i = i + 1 {
-    let t = gen_json().sample(size=8, seed=u64(400_000 + i))
-    let p = gen_json().sample(size=6, seed=u64(500_000 + i))
+    let t = @property.gen_json().sample(size=8, seed=@property.u64(400_000 + i))
+    let p = @property.gen_json().sample(size=6, seed=@property.u64(500_000 + i))
     let once = @jsonpatch.merge_patch(t, p)
     let twice = @jsonpatch.merge_patch(once, p)
     if !@jsonpatch.json_equal(once, twice) {
@@ -67,8 +67,8 @@ test "property: merge patch is idempotent" {
 ///|
 test "property: applying a patch never mutates its input" {
   for i = 0; i < 80; i = i + 1 {
-    let a = gen_json().sample(size=8, seed=u64(600_000 + i))
-    let b = gen_json().sample(size=8, seed=u64(700_000 + i))
+    let a = @property.gen_json().sample(size=8, seed=@property.u64(600_000 + i))
+    let b = @property.gen_json().sample(size=8, seed=@property.u64(700_000 + i))
     let before = a.stringify()
     let ops = @jsonpatch.diff(a, b)
     ignore(@jsonpatch.apply_patch(a, ops))

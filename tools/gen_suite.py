@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Generate MoonBit conformance tests from the vendored json-patch-tests
-fixtures (suite/fixtures/*.json) into suite/gen/*_wbtest.mbt.
+fixtures (suite/fixtures/*.json) into suite/gen/*_test.mbt.
 
 Cases marked "disabled" upstream are skipped and counted in the header.
 """
@@ -49,21 +49,25 @@ def gen_file(source: Path) -> str:
         lines.append(f'test "{tname}" {{')
         if comment:
             lines.append(f"  // {comment}")
-        lines.append(f"  let doc : Json = parse_fixture({literal(case['doc'])})")
         lines.append(
-            f"  let patch : Json = parse_fixture({literal(case['patch'])})"
+          f"  let doc : Json = @gen.parse_fixture({literal(case['doc'])})"
+        )
+        lines.append(
+          f"  let patch : Json = @gen.parse_fixture({literal(case['patch'])})"
         )
         if "expected" in case:
             lines.append(
-                f"  let expected : Json = parse_fixture("
-                f"{literal(case['expected'])})"
+              f"  let expected : Json = @gen.parse_fixture("
+              f"{literal(case['expected'])})"
             )
             lines.append(
-                "    inspect(@jsonpatch.json_equal(apply_ok(doc, patch), expected),"
-                ' content="true")'
+              "    inspect(@jsonpatch.json_equal(@gen.apply_ok(doc, patch), expected),"
+              ' content="true")'
             )
         else:
-            lines.append('    inspect(apply_err(doc, patch), content="true")')
+            lines.append(
+              '    inspect(@gen.apply_err(doc, patch), content="true")'
+            )
         lines.append("}")
         lines.append("")
     header = (
